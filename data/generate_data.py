@@ -69,15 +69,14 @@ TERMINAL_COUNTRIES = ["GB", "US", "DE", "FR", "NL", "IE", "ES"]
 
 
 def _get_engine():
-    """Build a SQLAlchemy engine from .env credentials."""
-    from urllib.parse import quote_plus
-    password = quote_plus(os.getenv('DB_PASSWORD', ''))
-    db_url = (
-        f"postgresql://{os.getenv('DB_USER')}:{password}"
-        f"@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}"
-        f"/{os.getenv('DB_NAME', 'postgres')}"
-    )
-    return create_engine(db_url)
+    """Build a SQLAlchemy engine using the centralized db_config."""
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from db_config import get_engine, init_sqlite_schema
+    engine = get_engine()
+    if engine.dialect.name == "sqlite":
+        init_sqlite_schema(engine)
+    return engine
 
 
 # ===================================================================

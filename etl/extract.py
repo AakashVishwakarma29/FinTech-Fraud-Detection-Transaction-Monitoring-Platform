@@ -26,19 +26,16 @@ logger = logging.getLogger(__name__)
 
 def get_engine():
     """
-    Create a SQLAlchemy engine from environment variables.
+    Create a SQLAlchemy engine using the centralized db_config.
 
     Business context: centralised engine factory ensures all pipeline
-    stages use consistent database credentials loaded from .env.
+    stages use consistent database credentials loaded from .env,
+    with automatic fallback to SQLite for local development.
     """
-    from urllib.parse import quote_plus
-    password = quote_plus(os.getenv('DB_PASSWORD', ''))
-    db_url = (
-        f"postgresql://{os.getenv('DB_USER')}:{password}"
-        f"@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}"
-        f"/{os.getenv('DB_NAME', 'postgres')}"
-    )
-    return create_engine(db_url)
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from db_config import get_engine as _get_engine
+    return _get_engine()
 
 
 EXTRACT_QUERY = """
